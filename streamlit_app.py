@@ -10,7 +10,7 @@ def parse_number(num_str):
 st.title("ROI Calculators")
 
 # Create tabs
-tab1, tab2 = st.tabs(["Break-even Volume Calculator", "Volume % ROI Calculator"])
+tab1, tab2, tab3 = st.tabs(["Break-even Volume Calculator", "Standard Calculation", "Scenario Calculation"])
 
 # Tab 1: Break-even Volume Calculator
 with tab1:
@@ -60,9 +60,9 @@ with tab1:
         st.info(f"Scenario 1 (-15% ROI): {format_number(roi_negative_scenarios[0])}")
         st.info(f"Scenario 2 (-30% ROI): {format_number(roi_negative_scenarios[1])}")
 
-# Tab 2: Volume % ROI Calculator
+# Tab 2: Standard Calculation
 with tab2:
-    st.header("Volume % ROI Calculator")
+    st.header("Standard Calculation")
 
     # Inputs for the calculator
     volume_options = list(range(10, 101, 10)) + list(range(125, 301, 25))
@@ -78,19 +78,70 @@ with tab2:
         options=affiliate_effective_commission_options, 
         format_func=lambda x: f"{int(x * 100)}%"
     )
-    budget_str = st.text_input("Enter Total Budget ($):", value=format_number(6000.0))
-
-    # Scenario multipliers with descriptions
-    market_sentiment = st.selectbox("Market Sentiment (MS):", ["Positive (1.2)", "Neutral (1.0)", "Negative (0.8)"])
-    apex_status = st.selectbox("ApeX Status, Liquidity & Pairs (AS):", ["High (1.1)", "Neutral (1.0)", "Low (0.9)"])
-    kol_influence = st.selectbox("KOL Influence (KI):", ["High (1.3)", "Neutral (1.0)", "Low (0.7)"])
-    affiliate_engagement = st.selectbox("Affiliate Engagement (AE):", ["High (1.25)", "Neutral (1.0)", "Low (0.75)"])
+    budget_str = st.text_input("Enter Total Budget ($):", value=format_number(7000.0))
 
     # Calculate button
-    if st.button("Calculate", key="calculate_roi"):
+    if st.button("Calculate", key="calculate_standard"):
         # Parse inputs
         budget = parse_number(budget_str)
         
+        average_apex_fee = 0.000475
+
+        # Standard Calculation
+        # Calculate Total Trading Fee
+        total_trading_fee = target_volume * average_apex_fee
+
+        # Calculate ApeX Generated Fee
+        apex_generated_fee = total_trading_fee * (1 - affiliate_effective_commission)
+
+        # Calculate Effective Commission
+        effective_commission = affiliate_effective_commission
+
+        # Calculate ROI
+        roi = ((apex_generated_fee - budget) / budget) * 100 if budget != 0 else 0
+
+        # Store inputs in query parameters for use in the third tab
+        st.experimental_set_query_params(
+            target_volume=format_number(target_volume),
+            budget_str=budget_str,
+            affiliate_effective_commission=affiliate_effective_commission
+        )
+
+        # Standard Result
+        st.write("### Standard Calculation")
+        st.write("#### Total Trading Fee")
+        st.info(f"${format_number(total_trading_fee)}")
+
+        st.write("#### ApeX Generated Fee")
+        st.info(f"${format_number(apex_generated_fee)}")
+
+        st.write("#### ROI")
+        st.info(f"{format_number(roi)}%")
+
+# Tab 3: Scenario Calculation
+with tab3:
+    st.header("Scenario Calculation")
+
+    # Retrieve stored inputs from query parameters
+    query_params = st.experimental_get_query_params()
+    base_volume = parse_number(query_params.get('target_volume', ["0"])[0])
+    budget_str = query_params.get('budget_str', ["0"])[0]
+    affiliate_effective_commission = float(query_params.get('affiliate_effective_commission', [0.5])[0])
+
+    # Inputs for the calculator
+    base_volume_str = st.text_input("Enter Base Volume for Scenario Calculation:", value=format_number(base_volume))
+    base_volume = parse_number(base_volume_str)
+
+    # Scenario multipliers with descriptions
+    market_sentiment = st.selectbox("Market Sentiment (MS):", ["Positive (1.2)", "Neutral (1.0)", "Negative (0.8)"], index=0)
+    apex_status = st.selectbox("ApeX Status, Liquidity & Pairs (AS):", ["High (1.1)", "Neutral (1.0)", "Low (0.9)"], index=0)
+    kol_influence = st.selectbox("KOL Influence (KI):", ["High (1.3)", "Neutral (1.0)", "Low (0.7)"], index=2)
+    affiliate_engagement = st.selectbox("Affiliate Engagement (AE):", ["High (1.25)", "Neutral (1.0)", "Low (0.75)"], index=1)
+
+    # Calculate button
+    if st.button("Calculate", key="calculate_scenario"):
+        # Parse inputs
+        budget = parse_number(budget_str)
         average_apex_fee = 0.000475
 
         # Define multipliers
@@ -105,59 +156,18 @@ with tab2:
         ki_multiplier = ki_dict[kol_influence]
         ae_multiplier = ae_dict[affiliate_engagement]
 
-        # Calculate Total Trading Fee
-        total_trading_fee = target_volume * average_apex_fee
+        # Calculate expected volume with scenario multipliers
+        v_expected_scenario = base_volume * ms_multiplier * as_multiplier * ki_multiplier * ae_multiplier
+        apex_generated_fee_scenario = v_expected_scenario * average_apex_fee * (1 - affiliate_effective_commission)
+        roi_scenario = ((apex_generated_fee_scenario - budget) / budget) * 100 if budget != 0 else 0
 
-        # Calculate ApeX Generated Fee
-        apex_generated_fee = total_trading_fee * (1 - affiliate_effective_commission)
+        st.write("### Calculation with Scenario Multipliers")
+        st.write("#### Expected Volume with Scenario")
+        st.info(f"{format_number(v_expected_scenario)}")
 
-        # Calculate Effective Commission
-        effective_commission = affiliate_effective_commission
+        st.write("#### ApeX Generated Fee with Scenario")
+        st.info(f"${format_number(apex_generated_fee_scenario)}")
 
-        # Calculate Target Volume for Break Even Point
-        trading_volume_break_even = budget / (average_apex_fee * (1 - affiliate_effective_commission))
+        st.write("#### ROI with Scenario")
+        st.info(f"{format_number(roi_scenario)}%")
 
-        # Calculate ROI
-        roi = ((apex_generated_fee - budget) / budget) * 100
-
-        # Calculate Expected Volume based on scenarios
-        v_base = target_volume
-        v_expected = v_base * ms_multiplier * as_multiplier * ki_multiplier * ae_multiplier
-
-        # Calculate ROI for scenarios
-        apex_generated_fee_best = v_expected * average_apex_fee * (1 - effective_commission)
-        roi_best = ((apex_generated_fee_best - budget) / budget) * 100
-
-        worst_case_volume = v_base * 0.8 * 0.9 * 0.7 * 0.75
-        apex_generated_fee_worst = worst_case_volume * average_apex_fee * (1 - effective_commission)
-        roi_worst = ((apex_generated_fee_worst - budget) / budget) * 100
-
-        # Display Results in separate boxes
-        st.write("### Results")
-
-        st.write("#### Total Trading Fee")
-        st.info(f"${format_number(total_trading_fee)}")
-
-        st.write("#### ApeX Generated Fee")
-        st.info(f"${format_number(apex_generated_fee)}")
-
-        st.write("#### Break Even Trading Volume")
-        st.info(f"{format_number(trading_volume_break_even)}")
-
-        st.write("#### ROI")
-        st.info(f"{format_number(roi)}%")
-
-        # Display scenarios
-        st.write("### Expected Volume and ROI in Different Scenarios")
-        
-        st.write("#### Best Case Scenario Expected Volume")
-        st.info("21,450,000.00")
-
-        st.write("#### Best Case Scenario ROI")
-        st.info("1.89%")
-
-        st.write("#### Worst Case Scenario Expected Volume")
-        st.info("3,780,000.00")
-
-        st.write("#### Worst Case Scenario ROI")
-        st.info("-82.05%")
