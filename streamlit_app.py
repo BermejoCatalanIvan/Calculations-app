@@ -29,7 +29,7 @@ with tab0:
     volume = volume_select if parse_number(volume_input) == 0 else parse_number(volume_input)
     
     affiliate_commission_options = [x/100 for x in range(20, 61, 5)]
-    master_affiliate_commission_options = [x/100 for x in range(4, 11)]
+    master_affiliate_commission_options = [x/100 for x in range(0, 11)]
     
     aff_commission = st.selectbox("Affiliate Commission:", options=affiliate_commission_options, format_func=lambda x: f"{int(x * 100)}%", key="aff_commission_0")
     master_aff_commission = st.selectbox("Master Affiliate Commission:", options=master_affiliate_commission_options, format_func=lambda x: f"{int(x * 100)}%", key="master_aff_commission_0")
@@ -49,17 +49,34 @@ with tab0:
             average_apex_fee = 0.000475
             fee_income = volume * average_apex_fee
 
-            # Calculate Margin
-            margin = fee_income / (bonus + payments)
+            # Calculate Margin Commission as a percentage
+            margin_commission_percentage = (bonus + payments) / fee_income
 
             # Calculate Total Commission
-            total_commission = aff_commission + master_aff_commission + (margin / 100)
+            total_commission = aff_commission + master_aff_commission + margin_commission_percentage
 
             # Display Results
             st.write("### Results")
 
+            st.write("#### Margin Commission")
+            st.info(f"{format_percentage(margin_commission_percentage)}")
+
             st.write("#### Effective Commission")
-            st.info(f"{format_percentage(total_commission)}")
+            effective_commission_str = f"{format_percentage(total_commission)}"
+            if total_commission > 0.65:
+                st.markdown(
+                    f"<div style='background-color: #ffcccc; padding: 20px; border-radius: 5px; text-align: center;'>"
+                    f"<span style='color:red; font-size:24px; font-weight:bold;'>{effective_commission_str}</span>"
+                    f"</div>",
+                    unsafe_allow_html=True
+                )
+            else:
+                st.markdown(
+                    f"<div style='background-color: #ccffcc; padding: 20px; border-radius: 5px; text-align: center;'>"
+                    f"<span style='font-size:24px; font-weight:bold;'>{effective_commission_str}</span>"
+                    f"</div>",
+                    unsafe_allow_html=True
+                )
 
 # Tab 1: Break-even Volume Calculator
 with tab1:
