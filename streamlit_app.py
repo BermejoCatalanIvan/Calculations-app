@@ -13,7 +13,7 @@ def parse_number(num_str):
     except ValueError:
         return 0.0
 
-st.title("BD's Calculator")
+st.title("BDs Calculator")
 
 # Create tabs
 tab0, tab1, tab2, tab3, tab4 = st.tabs([
@@ -251,12 +251,13 @@ with tab3:
         # Calculate ROI
         roi = ((apex_generated_fee - budget) / budget) * 100 if budget != 0 else 0
 
-        # Store inputs in query parameters for use in the third tab
-        st.experimental_set_query_params(
-            target_volume=format_number(target_volume),
-            budget_str=budget_str,
-            affiliate_effective_commission=affiliate_effective_commission
-        )
+        # Store inputs in session_state for use in the scenario tab
+        st.session_state['roi_target_volume'] = target_volume
+        st.session_state['roi_budget'] = budget
+        st.session_state['roi_affiliate_effective_commission'] = affiliate_effective_commission
+        st.session_state['roi_apex_generated_fee'] = apex_generated_fee
+        st.session_state['roi'] = roi
+        st.session_state['roi_total_trading_fee'] = total_trading_fee
 
         # Standard Result
         st.write("### Standard Calculation")
@@ -280,7 +281,6 @@ with tab4:
     ''')
     st.write("""
         **Guide:**
-        - **Base Volume:** Enter the base trading volume.
         - **Market Sentiment (MS):** Select the market sentiment multiplier.
         - **ApeX Status, Liquidity & Pairs (AS):** Select the ApeX status multiplier.
         - **KOL Influence (KI):** Select the KOL influence multiplier.
@@ -288,15 +288,17 @@ with tab4:
     """)
     st.divider()
 
-    # Retrieve stored inputs from query parameters
-    query_params = st.experimental_get_query_params()
-    base_volume = parse_number(query_params.get('target_volume', ["0"])[0])
-    budget_str = query_params.get('budget_str', ["0"])[0]
-    affiliate_effective_commission = float(query_params.get('affiliate_effective_commission', [0.5])[0])
-
-    # Inputs for the calculator
-    base_volume_str = st.text_input("Enter Base Volume for Scenario Calculation:", value=format_number(base_volume), key="base_volume_str")
-    base_volume = parse_number(base_volume_str)
+    # Retrieve stored inputs from session_state
+    if 'roi_target_volume' in st.session_state:
+        base_volume = st.session_state['roi_target_volume']
+        budget = st.session_state['roi_budget']
+        affiliate_effective_commission = st.session_state['roi_affiliate_effective_commission']
+        apex_generated_fee = st.session_state['roi_apex_generated_fee']
+        roi = st.session_state['roi']
+        total_trading_fee = st.session_state['roi_total_trading_fee']
+    else:
+        st.error("Please complete the ROI Calculation tab first.")
+        st.stop()
 
     # Scenario multipliers with descriptions
     market_sentiment = st.selectbox("Market Sentiment (MS):", ["Positive (1.2)", "Neutral (1.0)", "Negative (0.5)"], index=0, key="market_sentiment")
@@ -306,10 +308,6 @@ with tab4:
 
     # Calculate button
     if st.button("Calculate", key="calculate_scenario"):
-        # Parse inputs
-        budget = parse_number(budget_str)
-        average_apex_fee = 0.000475
-
         # Define multipliers
         ms_dict = {"Positive (1.2)": 1.2, "Neutral (1.0)": 1.0, "Negative (0.5)": 0.5}
         as_dict = {"High (1.1)": 1.1, "Neutral (1.0)": 1.0, "Low (0.9)": 0.9}
@@ -324,16 +322,27 @@ with tab4:
 
         # Calculate expected volume with scenario multipliers
         v_expected_scenario = base_volume * ms_multiplier * as_multiplier * ki_multiplier * ae_multiplier
-        apex_generated_fee_scenario = v_expected_scenario * average_apex_fee * (1 - affiliate_effective_commission)
+        apex_generated_fee_scenario = v_expected_scenario * 0.000475 * (1 - affiliate_effective_commission)
         roi_scenario = ((apex_generated_fee_scenario - budget) / budget) * 100 if budget != 0 else 0
 
-        st.write("### Calculation with Scenario Multipliers")
-        st.write("#### Expected Volume with Scenario")
-        st.info(f"{format_number(v_expected_scenario)}")
+        st.write("### Comparison with Scenario Multipliers")
 
-        st.write("#### ApeX Generated Fee with Scenario")
-        st.info(f"${format_number(apex_generated_fee_scenario)}")
+        col1, col2 = st.columns(2)
 
-        st.write("#### ROI with Scenario")
-        st.info(f"{format_number(roi_scenario)}%")
+        with col1:
+            st.write("#### Standard Calculation")
+            st.write("**Volume Selected**")
+            st.info(f"{format_number(base_volume)}")
+            st.write("**Total Trading Fee**")
+            st.info(f"${format_number(total_trading_fee)}")
+            st.write("**ROI**")
+            st.info(f"{format_number(roi)}%")
 
+        with col2:
+            st.write("#### Scenario Calculation")
+            st.write("**Expected Volume with Scenario**")
+            st.info(f"{format_number(v_expected_scenario)}")
+            st.write("**ApeX Generated Fee with Scenario**")
+            st.info(f"${format_number(apex_generated_fee_scenario)}")
+            st.write("**ROI with Scenario**")
+            st.info(f"{format_number(roi_scenario)}%")
