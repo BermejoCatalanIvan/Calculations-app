@@ -13,7 +13,7 @@ def parse_number(num_str):
     except ValueError:
         return 0.0
 
-st.title("ROI Calculators")
+st.title("BD's Calculator")
 
 # Create tabs
 tab0, tab1, tab2, tab3, tab4 = st.tabs([
