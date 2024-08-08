@@ -16,11 +16,32 @@ def parse_number(num_str):
 st.title("ROI Calculators")
 
 # Create tabs
-tab0, tab1, tab2, tab3 = st.tabs(["Effective Commission Calculator", "Break-even Volume Calculator", "Standard Calculation", "Scenario Calculation"])
+tab0, tab1, tab2, tab3, tab4 = st.tabs([
+    "EFFECTIVE COMMISSION", 
+    "MAX PAYMENTS", 
+    "BREAK-EVEN", 
+    "ROI", 
+    "SCENARIO"
+])
 
 # Tab 0: Effective Commission Calculator
 with tab0:
     st.header("Effective Commission Calculator")
+    st.write("""
+        This tab calculates the effective commission based on the given Affiliate Commission, Master Affiliate Commission, Bonus, and Payments.
+    """)
+    st.latex(r'''
+    \text{Effective Commission} = \text{Affiliate Commission} + \text{Master Affiliate Commission} + \left( \frac{\text{Bonus} + \text{Payments}}{\text{Fee Income}} \right)
+    ''')
+    st.write("""
+        **Guide:**
+        - **Introduce Volume (in millions):** Select or enter the trading volume.
+        - **Affiliate Commission:** Select the affiliate commission percentage.
+        - **Master Affiliate Commission:** Select the master affiliate commission percentage.
+        - **Bonus:** Enter the bonus amount in dollars.
+        - **Payments:** Enter the payment amount in dollars.
+    """)
+    st.divider()
 
     # Inputs for the calculator
     volume_options = list(range(10, 101, 10)) + list(range(125, 301, 25))
@@ -29,7 +50,7 @@ with tab0:
     volume = volume_select if parse_number(volume_input) == 0 else parse_number(volume_input)
     
     affiliate_commission_options = [x/100 for x in range(20, 61, 5)]
-    master_affiliate_commission_options = [x/100 for x in range(0, 11)]
+    master_affiliate_commission_options = [x/100 for x in range(0, 21)]
     
     aff_commission = st.selectbox("Affiliate Commission:", options=affiliate_commission_options, format_func=lambda x: f"{int(x * 100)}%", key="aff_commission_0")
     master_aff_commission = st.selectbox("Master Affiliate Commission:", options=master_affiliate_commission_options, format_func=lambda x: f"{int(x * 100)}%", key="master_aff_commission_0")
@@ -78,15 +99,67 @@ with tab0:
                     unsafe_allow_html=True
                 )
 
-# Tab 1: Break-even Volume Calculator
+# Tab 1: Max Bonus & Payments Calculator
 with tab1:
-    st.header("Break-even Volume Calculator")
+    st.header("Max Bonus & Payments Calculator")
+    st.write("""
+        This tab calculates the maximum allowable sum of bonus and payments that can be offered to the affiliate without surpassing a 65% effective commission.
+    """)
+    st.latex(r'''
+    \text{Max (Bonus + Payments)} = \left( 0.65 - \text{Affiliate Commission} - \text{Master Affiliate Commission} \right) \times ( \text{Volume} \times \text{Average ApeX Fee} )
+    ''')
+    st.write("""
+        **Guide:**
+        - **Introduce Volume (in millions):** Select or enter the trading volume.
+        - **Affiliate Commission:** Select the affiliate commission percentage.
+        - **Master Affiliate Commission:** Select the master affiliate commission percentage.
+    """)
+    st.divider()
 
     # Inputs for the calculator
-    budget_str = st.text_input("Enter Total Budget for Break-even ($):", key="budget_str_1", value=format_number(6000.0))
     volume_select = st.selectbox("Introduce Volume (in millions):", volume_options, key="volume_select_1") * 1_000_000
     volume_input = st.text_input("Or enter specific Volume:", value="0", key="volume_input_1")
     volume = volume_select if parse_number(volume_input) == 0 else parse_number(volume_input)
+    
+    aff_commission = st.selectbox("Affiliate Commission:", options=affiliate_commission_options, format_func=lambda x: f"{int(x * 100)}%", key="aff_commission_1")
+    master_aff_commission = st.selectbox("Master Affiliate Commission:", options=master_affiliate_commission_options, format_func=lambda x: f"{int(x * 100)}%", key="master_aff_commission_1")
+
+    # Calculate button
+    if st.button("Calculate Max (Bonus + Payments)"):
+        # Calculate Fee Income
+        average_apex_fee = 0.000475
+        fee_income = volume * average_apex_fee
+
+        # Calculate Margin Commission as a percentage
+        margin_commission_percentage = (0.65 - aff_commission - master_aff_commission)
+
+        # Calculate Max (Bonus + Payments)
+        max_bonus_payments = margin_commission_percentage * fee_income
+
+        # Display Results
+        st.write("### Results")
+
+        st.write("#### Maximum Allowable Bonus & Payments")
+        st.info(f"${format_number(max_bonus_payments)}")
+
+# Tab 2: Break-even Volume Calculator
+with tab2:
+    st.header("Break-even Volume Calculator")
+    st.write("""
+        This tab calculates the volume needed to reach the break-even point based on the total budget and effective commission.
+    """)
+    st.latex(r'''
+    \text{Trading Volume} = \frac{ \text{Budget} }{ \text{Average ApeX Fee} \times ( 1 - \text{Affiliate Effective Commission} ) }
+    ''')
+    st.write("""
+        **Guide:**
+        - **Total Budget for Break-even:** Enter the total budget in dollars.
+        - **Affiliate Effective Commission:** Select the effective commission percentage.
+    """)
+    st.divider()
+
+    # Inputs for the calculator
+    budget_str = st.text_input("Enter Total Budget for Break-even ($):", key="budget_str_1", value=format_number(6000.0))
     
     affiliate_effective_commission_options = [0.40, 0.45, 0.50, 0.55, 0.60, 0.65]
     affiliate_effective_commission = st.selectbox(
@@ -102,15 +175,8 @@ with tab1:
         # Parse inputs
         budget = parse_number(budget_str)
 
-        # Calculate Effective Commission
-        effective_commission = affiliate_effective_commission
-
         # Calculate Target Volume for Break Even Point
         trading_volume_break_even = budget / (average_apex_fee * (1 - affiliate_effective_commission))
-
-        # Calculate possible ROI outcomes
-        roi_positive_scenarios = [trading_volume_break_even * (1 + x/100) for x in [15, 30]]
-        roi_negative_scenarios = [trading_volume_break_even * (1 - x/100) for x in [15, 30]]
 
         # Display Results
         st.write("### Results")
@@ -119,6 +185,10 @@ with tab1:
         st.info(f"{format_number(trading_volume_break_even)}")
 
         st.write("### Possible ROI Outcomes")
+
+        # Calculate possible ROI outcomes
+        roi_positive_scenarios = [trading_volume_break_even * (1 + x/100) for x in [15, 30]]
+        roi_negative_scenarios = [trading_volume_break_even * (1 - x/100) for x in [15, 30]]
 
         # Display positive scenarios
         st.write("#### Positive Scenarios")
@@ -130,13 +200,26 @@ with tab1:
         st.info(f"Scenario 1 (-15% ROI): {format_number(roi_negative_scenarios[0])}")
         st.info(f"Scenario 2 (-30% ROI): {format_number(roi_negative_scenarios[1])}")
 
-# Tab 2: Standard Calculation
-with tab2:
-    st.header("Standard Calculation")
+# Tab 3: Standard Calculation
+with tab3:
+    st.header("ROI Calculation")
+    st.write("""
+        This tab calculates the standard ROI based on the given volume, budget, and effective commission.
+    """)
+    st.latex(r'''
+    \text{ROI} = \left( \frac{ \text{ApeX Generated Fee} - \text{Budget} }{ \text{Budget} } \right) \times 100
+    ''')
+    st.write("""
+        **Guide:**
+        - **Introduce Volume (in millions):** Select or enter the trading volume.
+        - **Affiliate Effective Commission:** Select the effective commission percentage.
+        - **Total Budget:** Enter the total budget in dollars.
+    """)
+    st.divider()
 
     # Inputs for the calculator
-    target_volume_select = st.selectbox("Introduce Volume (in millions):", volume_options, key="volume_select_2") * 1_000_000
-    target_volume_input = st.text_input("Or enter specific Volume:", value="0", key="volume_input_2")
+    target_volume_select = st.selectbox("Introduce Volume (in millions):", volume_options, key="volume_select_3") * 1_000_000
+    target_volume_input = st.text_input("Or enter specific Volume:", value="0", key="volume_input_3")
     target_volume = target_volume_select if parse_number(target_volume_input) == 0 else parse_number(target_volume_input)
 
     affiliate_effective_commission_options = [0.40, 0.45, 0.50, 0.55, 0.60, 0.65]
@@ -186,9 +269,24 @@ with tab2:
         st.write("#### ROI")
         st.info(f"{format_number(roi)}%")
 
-# Tab 3: Scenario Calculation
-with tab3:
+# Tab 4: Scenario Calculation
+with tab4:
     st.header("Scenario Calculation")
+    st.write("""
+        This tab calculates the expected volume and ROI based on various market scenarios.
+    """)
+    st.latex(r'''
+    \text{Expected Volume} = \text{Base Volume} \times \text{MS} \times \text{AS} \times \text{KI} \times \text{AE}
+    ''')
+    st.write("""
+        **Guide:**
+        - **Base Volume:** Enter the base trading volume.
+        - **Market Sentiment (MS):** Select the market sentiment multiplier.
+        - **ApeX Status, Liquidity & Pairs (AS):** Select the ApeX status multiplier.
+        - **KOL Influence (KI):** Select the KOL influence multiplier.
+        - **Affiliate Engagement (AE):** Select the affiliate engagement multiplier.
+    """)
+    st.divider()
 
     # Retrieve stored inputs from query parameters
     query_params = st.experimental_get_query_params()
@@ -201,7 +299,7 @@ with tab3:
     base_volume = parse_number(base_volume_str)
 
     # Scenario multipliers with descriptions
-    market_sentiment = st.selectbox("Market Sentiment (MS):", ["Positive (1.2)", "Neutral (1.0)", "Negative (0.8)"], index=0, key="market_sentiment")
+    market_sentiment = st.selectbox("Market Sentiment (MS):", ["Positive (1.2)", "Neutral (1.0)", "Negative (0.5)"], index=0, key="market_sentiment")
     apex_status = st.selectbox("ApeX Status, Liquidity & Pairs (AS):", ["High (1.1)", "Neutral (1.0)", "Low (0.9)"], index=0, key="apex_status")
     kol_influence = st.selectbox("KOL Influence (KI):", ["High (1.3)", "Neutral (1.0)", "Low (0.7)"], index=2, key="kol_influence")
     affiliate_engagement = st.selectbox("Affiliate Engagement (AE):", ["High (1.25)", "Neutral (1.0)", "Low (0.75)"], index=1, key="affiliate_engagement")
@@ -213,7 +311,7 @@ with tab3:
         average_apex_fee = 0.000475
 
         # Define multipliers
-        ms_dict = {"Positive (1.2)": 1.2, "Neutral (1.0)": 1.0, "Negative (0.8)": 0.8}
+        ms_dict = {"Positive (1.2)": 1.2, "Neutral (1.0)": 1.0, "Negative (0.5)": 0.5}
         as_dict = {"High (1.1)": 1.1, "Neutral (1.0)": 1.0, "Low (0.9)": 0.9}
         ki_dict = {"High (1.3)": 1.3, "Neutral (1.0)": 1.0, "Low (0.7)": 0.7}
         ae_dict = {"High (1.25)": 1.25, "Neutral (1.0)": 1.0, "Low (0.75)": 0.75}
@@ -238,3 +336,4 @@ with tab3:
 
         st.write("#### ROI with Scenario")
         st.info(f"{format_number(roi_scenario)}%")
+
