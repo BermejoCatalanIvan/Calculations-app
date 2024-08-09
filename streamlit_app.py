@@ -13,7 +13,8 @@ def parse_number(num_str):
     except ValueError:
         return 0.0
 
-st.title("BDs Calculator")
+# Set the title
+st.title("BD's Calculator")
 
 # Create tabs
 tab0, tab1, tab2, tab3, tab4 = st.tabs([
@@ -154,7 +155,7 @@ with tab2:
     st.write("""
         **Guide:**
         - **Total Budget for Break-even:** Enter the total budget in dollars.
-        - **Affiliate Effective Commission:** Select the effective commission percentage.
+        - **Affiliate Effective Commission:** Select the effective commission percentage or enter a specific value.
     """)
     st.divider()
 
@@ -162,12 +163,17 @@ with tab2:
     budget_str = st.text_input("Enter Total Budget for Break-even ($):", key="budget_str_1", value=format_number(6000.0))
     
     affiliate_effective_commission_options = [0.40, 0.45, 0.50, 0.55, 0.60, 0.65]
-    affiliate_effective_commission = st.selectbox(
+    selected_affiliate_effective_commission = st.selectbox(
         "Affiliate Effective Commission:", 
         options=affiliate_effective_commission_options, 
         format_func=lambda x: f"{int(x * 100)}%",
         key="affiliate_effective_commission_break_even"
     )
+    specific_affiliate_effective_commission_str = st.text_input("Or enter specific Affiliate Effective Commission (%):", value="0", key="specific_affiliate_effective_commission_break_even")
+    specific_affiliate_effective_commission = parse_number(specific_affiliate_effective_commission_str) / 100
+    
+    affiliate_effective_commission = specific_affiliate_effective_commission if specific_affiliate_effective_commission != 0 else selected_affiliate_effective_commission
+    
     average_apex_fee = 0.000475
 
     # Calculate button
@@ -212,7 +218,7 @@ with tab3:
     st.write("""
         **Guide:**
         - **Introduce Volume (in millions):** Select or enter the trading volume.
-        - **Affiliate Effective Commission:** Select the effective commission percentage.
+        - **Affiliate Effective Commission:** Select the effective commission percentage or enter a specific value.
         - **Total Budget:** Enter the total budget in dollars.
     """)
     st.divider()
@@ -223,12 +229,17 @@ with tab3:
     target_volume = target_volume_select if parse_number(target_volume_input) == 0 else parse_number(target_volume_input)
 
     affiliate_effective_commission_options = [0.40, 0.45, 0.50, 0.55, 0.60, 0.65]
-    affiliate_effective_commission = st.selectbox(
+    selected_affiliate_effective_commission = st.selectbox(
         "Affiliate Effective Commission:", 
         options=affiliate_effective_commission_options, 
         format_func=lambda x: f"{int(x * 100)}%",
         key="affiliate_effective_commission_standard"
     )
+    specific_affiliate_effective_commission_str = st.text_input("Or enter specific Affiliate Effective Commission (%):", value="0", key="specific_affiliate_effective_commission_standard")
+    specific_affiliate_effective_commission = parse_number(specific_affiliate_effective_commission_str) / 100
+    
+    affiliate_effective_commission = specific_affiliate_effective_commission if specific_affiliate_effective_commission != 0 else selected_affiliate_effective_commission
+    
     budget_str = st.text_input("Enter Total Budget ($):", value=format_number(7000.0), key="budget_str_2")
 
     # Calculate button
@@ -261,8 +272,8 @@ with tab3:
 
         # Standard Result
         st.write("### Standard Calculation")
-        st.write("#### Total Trading Fee")
-        st.info(f"${format_number(total_trading_fee)}")
+        st.write("#### Volume Selected")
+        st.info(f"{format_number(target_volume)}")
 
         st.write("#### ApeX Generated Fee")
         st.info(f"${format_number(apex_generated_fee)}")
@@ -295,7 +306,6 @@ with tab4:
         affiliate_effective_commission = st.session_state['roi_affiliate_effective_commission']
         apex_generated_fee = st.session_state['roi_apex_generated_fee']
         roi = st.session_state['roi']
-        total_trading_fee = st.session_state['roi_total_trading_fee']
     else:
         st.error("Please complete the ROI Calculation tab first.")
         st.stop()
@@ -333,8 +343,8 @@ with tab4:
             st.write("#### Standard Calculation")
             st.write("**Volume Selected**")
             st.info(f"{format_number(base_volume)}")
-            st.write("**Total Trading Fee**")
-            st.info(f"${format_number(total_trading_fee)}")
+            st.write("**ApeX Generated Fee**")
+            st.info(f"${format_number(apex_generated_fee)}")
             st.write("**ROI**")
             st.info(f"{format_number(roi)}%")
 
