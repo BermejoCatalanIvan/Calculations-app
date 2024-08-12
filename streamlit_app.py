@@ -103,58 +103,62 @@ st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
     
-    html, body, [class*="css"]  {
-        font-family: 'Inter', sans-serif;
-        background-color: #000000;
-        color: #FFFFFF;
+    /* Apply a black background to the entire body */
+    body {
+        background-color: #000000 !important;
+        color: #FFFFFF !important;
+    }
+
+    /* Apply a black background to the Streamlit app container */
+    .stApp {
+        background-color: #000000 !important;
+    }
+
+    /* Apply a black background to the main content area */
+    .main .block-container {
+        background-color: #000000 !important;
+        border-radius: 0px !important;
+        padding: 2rem 1rem !important;
+    }
+
+    /* Center and resize the logo */
+    .stApp > header > img {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+        width: 300px !important;
+    }
+
+    /* Ensure all text is visible and styled appropriately */
+    h1, h2, h3, h4, .stHeader, .stFooter, .stText, .stTabs, p, label {
+        color: #FFFFFF !important;
+    }
+
+    /* Set the headers to yellow */
+    h1, h2, h3, h4 {
+        color: #FFC000 !important;  /* ApeX Yellow */
     }
 
     .stButton>button {
         background-color: #FFC000;  /* ApeX Yellow */
-        color: #000000;
-        border-radius: 8px;
-        padding: 10px 24px;
-        font-size: 16px;
-        font-weight: 500;
-    }
-
-    .stHeader, .stFooter, .stText, .stTabs {
-        color: #FFFFFF;
+        color: #000000 !important;
+        border-radius: 8px !important;
+        padding: 10px 24px !important;
+        font-size: 16px !important;
+        font-weight: 500 !important;
     }
 
     .stTabs [role="tablist"] .stTabsContainer {
-        background-color: #1e1e1e;
-        border-radius: 12px;
-    }
-
-    h1, h2, h3, h4 {
-        color: #FFC000;  /* ApeX Yellow */
-    }
-
-    .stMarkdown h1 {
-        margin-top: 0;
-        padding-top: 0;
-    }
-
-    .stMarkdown div {
-        color: #FFFFFF;
-    }
-
-    p, label, .stText {
-        color: #FFFFFF;  /* Ensure all text is visible */
+        background-color: #1e1e1e !important;
+        border-radius: 12px !important;
     }
 
     hr {
-        border: 1px solid #FFC000;  /* ApeX Yellow */
-    }
-
-    .block-container {
-        padding: 2rem 1rem;
-        background-color: #000000;  /* Entire app background black */
+        border: 1px solid #FFC000 !important;  /* ApeX Yellow */
     }
 
     img {
-        margin-bottom: 20px;
+        margin-bottom: 20px !important;
     }
 
     </style>
