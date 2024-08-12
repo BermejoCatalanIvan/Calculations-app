@@ -151,7 +151,7 @@ st.image("https://www.apex.exchange/img/logo.png", width=200)
 
 # Create tabs
 tab0, tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "Affiliate/KOL Info", 
+    "INFO", 
     "EFFECTIVE COMMISSION", 
     "MAX PAYMENTS", 
     "BREAK-EVEN", 
