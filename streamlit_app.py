@@ -1,6 +1,10 @@
 import streamlit as st
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from reportlab.lib import colors
+import io
 
-# Helper function to format numbers with thousand separators
+# Helper functions
 def format_number(num):
     return "{:,.2f}".format(num)
 
@@ -13,11 +17,141 @@ def parse_number(num_str):
     except ValueError:
         return 0.0
 
-# Set the title
-st.title("BD's Calculator")
+def create_pdf(calculations):
+    buffer = io.BytesIO()
+    c = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
+    margin = 50
+    y_position = height - margin
+
+    # Set Title
+    c.setFont("Helvetica-Bold", 18)
+    c.drawString(margin, y_position, "BD's Calculator Results")
+    y_position -= 30
+
+    # Include Affiliate/KOL Name and Salesforce ID
+    if "affiliate_info" in calculations:
+        affiliate_info = calculations["affiliate_info"]
+        c.setFont("Helvetica-Bold", 14)
+        c.drawString(margin, y_position, "Affiliate/KOL Information")
+        y_position -= 20
+
+        c.setFont("Helvetica", 12)
+        for label, value in affiliate_info.items():
+            c.drawString(margin, y_position, f"{label}: {value}")
+            y_position -= 20
+
+        # Add a divider line after the affiliate information
+        c.setStrokeColor(colors.black)
+        c.line(margin, y_position + 10, width - margin, y_position + 10)
+        y_position -= 30
+
+    # Define the desired order of sections
+    section_order = [
+        "Effective Commission",
+        "Max Bonus & Payments",
+        "Break-even Volume",
+        "Standard ROI Calculation",
+        "Scenario Calculation"
+    ]
+
+    # Iterate over each section in the defined order
+    for section in section_order:
+        if section in calculations:
+            if y_position < 100:  # Start a new page if too close to the bottom
+                c.showPage()
+                y_position = height - margin
+
+            # Print section title
+            c.setFont("Helvetica-Bold", 14)
+            c.drawString(margin, y_position, section)
+            y_position -= 20
+
+            # Print section content
+            c.setFont("Helvetica", 12)
+            for label, value in calculations[section].items():
+                c.drawString(margin, y_position, f"{label}: {value}")
+                y_position -= 20
+
+            # Add a divider line between sections
+            c.setStrokeColor(colors.black)
+            c.line(margin, y_position + 10, width - margin, y_position + 10)
+
+            y_position -= 30  # Extra spacing after divider
+
+    c.save()
+    buffer.seek(0)
+    return buffer
+
+def download_pdf(calculations):
+    pdf = create_pdf(calculations)
+    st.download_button(
+        label="Download all calculations as PDF",
+        data=pdf,
+        file_name="BD_calculator_results.pdf",
+        mime="application/pdf",
+    )
+
+# Initialize session state
+if 'calculations' not in st.session_state:
+    st.session_state['calculations'] = {}
+if 'all_calculations_done' not in st.session_state:
+    st.session_state['all_calculations_done'] = False
+
+# Custom CSS styling
+st.markdown("""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+    
+    html, body, [class*="css"]  {
+        font-family: 'Roboto', sans-serif;
+        background-color: #000000;
+        color: #FFFFFF;
+    }
+
+    .stButton>button {
+        background-color: #00BFFF;
+        color: #FFFFFF;
+        border-radius: 8px;
+        padding: 10px 24px;
+        font-size: 16px;
+        font-weight: 500;
+    }
+
+    .stHeader, .stFooter, .stText, .stTabs {
+        color: #FFFFFF;
+    }
+
+    .stTabs [role="tablist"] .stTabsContainer {
+        background-color: #1e1e1e;
+        border-radius: 12px;
+    }
+
+    h1, h2, h3, h4 {
+        color: #00BFFF;
+    }
+
+    .stMarkdown h1 {
+        margin-top: 0;
+        padding-top: 0;
+    }
+
+    .stMarkdown div {
+        color: #FFFFFF;
+    }
+
+    hr {
+        border: 1px solid #00BFFF;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
+# APEX logo
+st.image("https://www.apex.exchange/img/logo.png", width=200)
 
 # Create tabs
-tab0, tab1, tab2, tab3, tab4 = st.tabs([
+tab0, tab1, tab2, tab3, tab4, tab5 = st.tabs([
+    "Affiliate/KOL Info", 
     "EFFECTIVE COMMISSION", 
     "MAX PAYMENTS", 
     "BREAK-EVEN", 
@@ -25,8 +159,25 @@ tab0, tab1, tab2, tab3, tab4 = st.tabs([
     "SCENARIO"
 ])
 
-# Tab 0: Effective Commission Calculator
+# Tab 0: Affiliate/KOL Information
 with tab0:
+    st.header("Affiliate/KOL Information")
+    st.write("""
+        Please enter the Affiliate or KOL's name along with the Lead or Account number ID from Salesforce.
+    """)
+    affiliate_name = st.text_input("Affiliate/KOL Name:")
+    salesforce_id = st.text_input("Lead or Account Number ID:")
+
+    # Store the information in session state
+    if st.button("Save Information"):
+        st.session_state['calculations']["affiliate_info"] = {
+            "Affiliate/KOL Name": affiliate_name,
+            "Lead/Account Number ID": salesforce_id
+        }
+        st.success("Information saved successfully.")
+
+# Tab 1: Effective Commission Calculator
+with tab1:
     st.header("Effective Commission Calculator")
     st.write("""
         This tab calculates the effective commission based on the given Affiliate Commission, Master Affiliate Commission, Bonus, and Payments.
@@ -100,8 +251,14 @@ with tab0:
                     unsafe_allow_html=True
                 )
 
-# Tab 1: Max Bonus & Payments Calculator
-with tab1:
+            # Store the result in session state
+            st.session_state['calculations']["Effective Commission"] = {
+                "Margin Commission": f"{format_percentage(margin_commission_percentage)}",
+                "Effective Commission": f"{effective_commission_str}"
+            }
+
+# Tab 2: Max Bonus & Payments Calculator
+with tab2:
     st.header("Max Bonus & Payments Calculator")
     st.write("""
         This tab calculates the maximum allowable sum of bonus and payments that can be offered to the affiliate without surpassing a 65% effective commission.
@@ -143,8 +300,13 @@ with tab1:
         st.write("#### Maximum Allowable Bonus & Payments")
         st.info(f"${format_number(max_bonus_payments)}")
 
-# Tab 2: Break-even Volume Calculator
-with tab2:
+        # Store the result in session state
+        st.session_state['calculations']["Max Bonus & Payments"] = {
+            "Maximum Allowable Bonus & Payments": f"${format_number(max_bonus_payments)}"
+        }
+
+# Tab 3: Break-even Volume Calculator
+with tab3:
     st.header("Break-even Volume Calculator")
     st.write("""
         This tab calculates the volume needed to reach the break-even point based on the total budget and effective commission.
@@ -206,8 +368,17 @@ with tab2:
         st.info(f"Scenario 1 (-15% ROI): {format_number(roi_negative_scenarios[0])}")
         st.info(f"Scenario 2 (-30% ROI): {format_number(roi_negative_scenarios[1])}")
 
-# Tab 3: Standard Calculation
-with tab3:
+        # Store the result in session state
+        st.session_state['calculations']["Break-even Volume"] = {
+            "Break Even Trading Volume": f"{format_number(trading_volume_break_even)}",
+            "Positive Scenario 1": f"{format_number(roi_positive_scenarios[0])}",
+            "Positive Scenario 2": f"{format_number(roi_positive_scenarios[1])}",
+            "Negative Scenario 1": f"{format_number(roi_negative_scenarios[0])}",
+            "Negative Scenario 2": f"{format_number(roi_negative_scenarios[1])}"
+        }
+
+# Tab 4: Standard Calculation
+with tab4:
     st.header("ROI Calculation")
     st.write("""
         This tab calculates the standard ROI based on the given volume, budget, and effective commission.
@@ -281,8 +452,15 @@ with tab3:
         st.write("#### ROI")
         st.info(f"{format_number(roi)}%")
 
-# Tab 4: Scenario Calculation
-with tab4:
+        # Store the result in session state
+        st.session_state['calculations']["Standard ROI Calculation"] = {
+            "Volume Selected": f"{format_number(target_volume)}",
+            "ApeX Generated Fee": f"${format_number(apex_generated_fee)}",
+            "ROI": f"{format_number(roi)}%"
+        }
+
+# Tab 5: Scenario Calculation
+with tab5:
     st.header("Scenario Calculation")
     st.write("""
         This tab calculates the expected volume and ROI based on various market scenarios.
@@ -356,3 +534,18 @@ with tab4:
             st.info(f"${format_number(apex_generated_fee_scenario)}")
             st.write("**ROI with Scenario**")
             st.info(f"{format_number(roi_scenario)}%")
+
+        # Store the result in session state
+        st.session_state['calculations']["Scenario Calculation"] = {
+            "Volume Selected": f"{format_number(base_volume)}",
+            "ApeX Generated Fee with Scenario": f"${format_number(apex_generated_fee_scenario)}",
+            "ROI with Scenario": f"{format_number(roi_scenario)}%"
+        }
+
+# Check if all calculations are done
+if len(st.session_state['calculations']) == 6:  # Include affiliate_info in the count
+    st.session_state['all_calculations_done'] = True
+
+# Button to download the PDF
+if st.session_state['all_calculations_done']:
+    download_pdf(st.session_state['calculations'])
