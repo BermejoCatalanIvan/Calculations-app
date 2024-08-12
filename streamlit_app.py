@@ -98,9 +98,76 @@ if 'calculations' not in st.session_state:
 if 'all_calculations_done' not in st.session_state:
     st.session_state['all_calculations_done'] = False
 
+# Custom CSS styling
+st.markdown("""
+    <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+    
+    html, body, [class*="css"]  {
+        font-family: 'Inter', sans-serif;
+        background-color: #000000;
+        color: #FFFFFF;
+    }
+
+    .stButton>button {
+        background-color: #FFC000;  /* ApeX Yellow */
+        color: #000000;
+        border-radius: 8px;
+        padding: 10px 24px;
+        font-size: 16px;
+        font-weight: 500;
+    }
+
+    .stHeader, .stFooter, .stText, .stTabs {
+        color: #FFFFFF;
+    }
+
+    .stTabs [role="tablist"] .stTabsContainer {
+        background-color: #1e1e1e;
+        border-radius: 12px;
+    }
+
+    h1, h2, h3, h4 {
+        color: #FFC000;  /* ApeX Yellow */
+    }
+
+    .stMarkdown h1 {
+        margin-top: 0;
+        padding-top: 0;
+    }
+
+    .stMarkdown div {
+        color: #FFFFFF;
+    }
+
+    p, label, .stText {
+        color: #FFFFFF;  /* Ensure all text is visible */
+    }
+
+    hr {
+        border: 1px solid #FFC000;  /* ApeX Yellow */
+    }
+
+    .block-container {
+        padding: 2rem 1rem;
+        background-color: #000000;  /* Entire app background black */
+    }
+
+    img {
+        margin-bottom: 20px;
+    }
+
+    </style>
+""", unsafe_allow_html=True)
+
+# APEX logo
+st.image("https://thewealthmastery.io/wp-content/uploads/2022/12/Apex-1024x536.jpg", width=200)
+
+st.title("ApeX Calculator Tool")
+
 # Create tabs
 tab0, tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "Affiliate/KOL Info", 
+    "INFO", 
     "EFFECTIVE COMMISSION", 
     "MAX PAYMENTS", 
     "BREAK-EVEN", 
@@ -108,7 +175,7 @@ tab0, tab1, tab2, tab3, tab4, tab5 = st.tabs([
     "SCENARIO"
 ])
 
-# Tab 0: Affiliate/KOL Information
+# Tab 0: INFO
 with tab0:
     st.header("Affiliate/KOL Information")
     st.write("""
@@ -116,12 +183,14 @@ with tab0:
     """)
     affiliate_name = st.text_input("Affiliate/KOL Name:")
     salesforce_id = st.text_input("Lead or Account Number ID:")
+    incentive_number = st.text_input("Incentive Number:")
 
     # Store the information in session state
     if st.button("Save Information"):
         st.session_state['calculations']["affiliate_info"] = {
             "Affiliate/KOL Name": affiliate_name,
-            "Lead/Account Number ID": salesforce_id
+            "Lead/Account Number ID": salesforce_id,
+            "Incentive Number": incentive_number
         }
         st.success("Information saved successfully.")
 
