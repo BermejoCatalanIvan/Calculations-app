@@ -122,11 +122,10 @@ st.markdown("""
     }
 
     /* Center and resize the logo */
-    .stApp > header > img {
-        display: block;
-        margin-left: auto;
-        margin-right: auto;
-        width: 300px !important;
+    .centered-logo {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
     }
 
     /* Ensure all text is visible and styled appropriately */
@@ -139,13 +138,45 @@ st.markdown("""
         color: #FFC000 !important;  /* ApeX Yellow */
     }
 
+    /* Style for all primary buttons */
     .stButton>button {
         background-color: #FFC000;  /* ApeX Yellow */
-        color: #000000 !important;
+        color: #000000 !important;  /* Black text */
         border-radius: 8px !important;
         padding: 10px 24px !important;
         font-size: 16px !important;
         font-weight: 500 !important;
+        border: 2px solid #000000 !important; /* Black border */
+        text-align: center !important;
+    }
+
+    /* Style for download button */
+    .stDownloadButton > button {
+        background-color: #FFC000 !important;  /* ApeX Yellow */
+        color: #000000 !important;  /* Black text */
+        border-radius: 8px !important;
+        padding: 10px 24px !important;
+        font-size: 16px !important;
+        font-weight: 500 !important;
+        border: 2px solid #000000 !important; /* Black border */
+        text-align: center !important;
+    }
+
+    /* Override any border styles that might be affecting buttons */
+    .stButton > button:hover, .stDownloadButton > button:hover {
+        background-color: #E5A800 !important;  /* Slightly darker yellow on hover */
+        color: #000000 !important;  /* Ensure text is black on hover */
+    }
+
+    /* Styling the Effective Commission result */
+    .stMarkdown > div > div > div > .stMarkdown > div:nth-child(2) > div {
+        background-color: #FFC000 !important; /* ApeX Yellow */
+        color: #000000 !important; /* Black text */
+        border-radius: 8px !important;
+        padding: 10px !important;
+        font-size: 24px !important;
+        font-weight: bold !important;
+        text-align: center !important;
     }
 
     .stTabs [role="tablist"] .stTabsContainer {
@@ -164,10 +195,14 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# APEX logo
-st.image("https://thewealthmastery.io/wp-content/uploads/2022/12/Apex-1024x536.jpg", width=200)
+# Centered ApeX Logo
+st.markdown("""
+    <div class="centered-logo">
+        <img src="https://thewealthmastery.io/wp-content/uploads/2022/12/Apex-1024x536.jpg" width="400">
+    </div>
+""", unsafe_allow_html=True)
 
-st.title("ApeX Calculator Tool")
+st.title("BD's Calculator Tool")
 
 # Create tabs
 tab0, tab1, tab2, tab3, tab4, tab5 = st.tabs([
