@@ -98,60 +98,9 @@ if 'calculations' not in st.session_state:
 if 'all_calculations_done' not in st.session_state:
     st.session_state['all_calculations_done'] = False
 
-# Custom CSS styling
-st.markdown("""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
-    
-    html, body, [class*="css"]  {
-        font-family: 'Roboto', sans-serif;
-        background-color: #000000;
-        color: #FFFFFF;
-    }
-
-    .stButton>button {
-        background-color: #00BFFF;
-        color: #FFFFFF;
-        border-radius: 8px;
-        padding: 10px 24px;
-        font-size: 16px;
-        font-weight: 500;
-    }
-
-    .stHeader, .stFooter, .stText, .stTabs {
-        color: #FFFFFF;
-    }
-
-    .stTabs [role="tablist"] .stTabsContainer {
-        background-color: #1e1e1e;
-        border-radius: 12px;
-    }
-
-    h1, h2, h3, h4 {
-        color: #00BFFF;
-    }
-
-    .stMarkdown h1 {
-        margin-top: 0;
-        padding-top: 0;
-    }
-
-    .stMarkdown div {
-        color: #FFFFFF;
-    }
-
-    hr {
-        border: 1px solid #00BFFF;
-    }
-    </style>
-""", unsafe_allow_html=True)
-
-# APEX logo
-st.image("https://www.apex.exchange/img/logo.png", width=200)
-
 # Create tabs
 tab0, tab1, tab2, tab3, tab4, tab5 = st.tabs([
-    "INFO", 
+    "Affiliate/KOL Info", 
     "EFFECTIVE COMMISSION", 
     "MAX PAYMENTS", 
     "BREAK-EVEN", 
