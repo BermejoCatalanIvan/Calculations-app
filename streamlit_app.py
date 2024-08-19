@@ -3,6 +3,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib import colors
 import io
+from datetime import datetime
 
 # Helper functions
 def format_number(num):
@@ -17,7 +18,7 @@ def parse_number(num_str):
     except ValueError:
         return 0.0
 
-def create_pdf(calculations):
+def create_pdf(calculations, title):
     buffer = io.BytesIO()
     c = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
@@ -26,34 +27,22 @@ def create_pdf(calculations):
 
     # Set Title
     c.setFont("Helvetica-Bold", 18)
-    c.drawString(margin, y_position, "BD's Calculator Results")
+    c.drawString(margin, y_position, title)
     y_position -= 30
 
-    # Include Affiliate/KOL Name and Salesforce ID
-    if "affiliate_info" in calculations:
-        affiliate_info = calculations["affiliate_info"]
-        c.setFont("Helvetica-Bold", 14)
-        c.drawString(margin, y_position, "Affiliate/KOL Information")
-        y_position -= 20
+    # Include Timestamp
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    c.setFont("Helvetica", 10)
+    c.drawString(margin, y_position, f"Generated on: {timestamp}")
+    y_position -= 20
 
-        c.setFont("Helvetica", 12)
-        for label, value in affiliate_info.items():
-            c.drawString(margin, y_position, f"{label}: {value}")
-            y_position -= 20
-
-        # Add a divider line after the affiliate information
-        c.setStrokeColor(colors.black)
-        c.line(margin, y_position + 10, width - margin, y_position + 10)
-        y_position -= 30
+    # Add a divider below the timestamp
+    c.setStrokeColor(colors.black)
+    c.line(margin, y_position, width - margin, y_position)
+    y_position -= 30
 
     # Define the desired order of sections
-    section_order = [
-        "Effective Commission",
-        "Max Bonus & Payments",
-        "Break-even Volume",
-        "Standard ROI Calculation",
-        "Scenario Calculation"
-    ]
+    section_order = list(calculations.keys())
 
     # Iterate over each section in the defined order
     for section in section_order:
@@ -63,9 +52,10 @@ def create_pdf(calculations):
                 y_position = height - margin
 
             # Print section title
-            c.setFont("Helvetica-Bold", 14)
-            c.drawString(margin, y_position, section)
-            y_position -= 20
+            if section != "affiliate_info":  # Skip the affiliate_info title
+                c.setFont("Helvetica-Bold", 14)
+                c.drawString(margin, y_position, section)
+                y_position -= 20
 
             # Print section content
             c.setFont("Helvetica", 12)
@@ -83,12 +73,12 @@ def create_pdf(calculations):
     buffer.seek(0)
     return buffer
 
-def download_pdf(calculations):
-    pdf = create_pdf(calculations)
+def download_pdf(calculations, title):
+    pdf = create_pdf(calculations, title)
     st.download_button(
-        label="Download all calculations as PDF",
+        label=f"Download {title} as PDF",
         data=pdf,
-        file_name="BD_calculator_results.pdf",
+        file_name=f"{title.replace(' ', '_')}.pdf",
         mime="application/pdf",
     )
 
@@ -233,6 +223,10 @@ with tab0:
         }
         st.success("Information saved successfully.")
 
+    # Individual Print Button
+    if "affiliate_info" in st.session_state['calculations']:
+        download_pdf({"Affiliate/KOL Information": st.session_state['calculations']["affiliate_info"]}, "Affiliate_KOL_Information")
+
 # Tab 1: Effective Commission Calculator
 with tab1:
     st.header("Effective Commission Calculator")
@@ -314,6 +308,10 @@ with tab1:
                 "Effective Commission": f"{effective_commission_str}"
             }
 
+    # Individual Print Button
+    if "Effective Commission" in st.session_state['calculations']:
+        download_pdf({"Effective Commission": st.session_state['calculations']["Effective Commission"]}, "Effective_Commission")
+
 # Tab 2: Max Bonus & Payments Calculator
 with tab2:
     st.header("Max Bonus & Payments Calculator")
@@ -361,6 +359,10 @@ with tab2:
         st.session_state['calculations']["Max Bonus & Payments"] = {
             "Maximum Allowable Bonus & Payments": f"${format_number(max_bonus_payments)}"
         }
+
+    # Individual Print Button
+    if "Max Bonus & Payments" in st.session_state['calculations']:
+        download_pdf({"Max Bonus & Payments": st.session_state['calculations']["Max Bonus & Payments"]}, "Max_Bonus_Payments")
 
 # Tab 3: Break-even Volume Calculator
 with tab3:
@@ -433,6 +435,10 @@ with tab3:
             "Negative Scenario 1": f"{format_number(roi_negative_scenarios[0])}",
             "Negative Scenario 2": f"{format_number(roi_negative_scenarios[1])}"
         }
+
+    # Individual Print Button
+    if "Break-even Volume" in st.session_state['calculations']:
+        download_pdf({"Break-even Volume": st.session_state['calculations']["Break-even Volume"]}, "Break_even_Volume")
 
 # Tab 4: Standard Calculation
 with tab4:
@@ -515,6 +521,10 @@ with tab4:
             "ApeX Generated Fee": f"${format_number(apex_generated_fee)}",
             "ROI": f"{format_number(roi)}%"
         }
+
+    # Individual Print Button
+    if "Standard ROI Calculation" in st.session_state['calculations']:
+        download_pdf({"Standard ROI Calculation": st.session_state['calculations']["Standard ROI Calculation"]}, "Standard_ROI_Calculation")
 
 # Tab 5: Scenario Calculation
 with tab5:
@@ -599,10 +609,14 @@ with tab5:
             "ROI with Scenario": f"{format_number(roi_scenario)}%"
         }
 
+    # Individual Print Button
+    if "Scenario Calculation" in st.session_state['calculations']:
+        download_pdf({"Scenario Calculation": st.session_state['calculations']["Scenario Calculation"]}, "Scenario_Calculation")
+
 # Check if all calculations are done
 if len(st.session_state['calculations']) == 6:  # Include affiliate_info in the count
     st.session_state['all_calculations_done'] = True
 
-# Button to download the PDF
+# "Print All the Information" Button
 if st.session_state['all_calculations_done']:
-    download_pdf(st.session_state['calculations'])
+    download_pdf(st.session_state['calculations'], "All_Information")
