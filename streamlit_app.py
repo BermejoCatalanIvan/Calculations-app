@@ -169,6 +169,17 @@ st.markdown("""
         text-align: center !important;
     }
 
+    /* Dark green text for positive ROI */
+    .positive-roi {
+        background-color: #ccffcc !important; /* Light green background */
+        color: #006400 !important; /* Dark green text */
+        border-radius: 8px !important;
+        padding: 10px !important;
+        font-size: 24px !important;
+        font-weight: bold !important;
+        text-align: center !important;
+    }
+
     .stTabs [role="tablist"] .stTabsContainer {
         background-color: #1e1e1e !important;
         border-radius: 12px !important;
@@ -296,8 +307,8 @@ with tab1:
                 )
             else:
                 st.markdown(
-                    f"<div style='background-color: #ccffcc; padding: 20px; border-radius: 5px; text-align: center;'>"
-                    f"<span style='font-size:24px; font-weight:bold;'>{effective_commission_str}</span>"
+                    f"<div class='positive-roi'>"
+                    f"{effective_commission_str}"
                     f"</div>",
                     unsafe_allow_html=True
                 )
