@@ -313,8 +313,10 @@ with tab1:
                     unsafe_allow_html=True
                 )
 
-            # Store the result in session state
+            # Store the result in session state, including the selected Affiliate and Master Affiliate Commission percentages
             st.session_state['calculations']["Effective Commission"] = {
+                "Affiliate Commission": f"{format_percentage(aff_commission)}",
+                "Master Affiliate Commission": f"{format_percentage(master_aff_commission)}",
                 "Margin Commission": f"{format_percentage(margin_commission_percentage)}",
                 "Effective Commission": f"{effective_commission_str}"
             }
@@ -631,3 +633,4 @@ if len(st.session_state['calculations']) == 6:  # Include affiliate_info in the 
 # "Print All the Information" Button
 if st.session_state['all_calculations_done']:
     download_pdf(st.session_state['calculations'], "All_Information")
+
