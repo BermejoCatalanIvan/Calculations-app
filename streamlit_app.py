@@ -93,75 +93,65 @@ st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
     
-    /* Apply a black background to the entire body */
     body {
         background-color: #000000 !important;
         color: #FFFFFF !important;
     }
 
-    /* Apply a black background to the Streamlit app container */
     .stApp {
         background-color: #000000 !important;
     }
 
-    /* Apply a black background to the main content area */
     .main .block-container {
         background-color: #000000 !important;
         border-radius: 0px !important;
         padding: 2rem 1rem !important;
     }
 
-    /* Center and resize the logo */
     .centered-logo {
         display: flex;
         justify-content: center;
         margin-bottom: 20px;
     }
 
-    /* Ensure all text is visible and styled appropriately */
     h1, h2, h3, h4, .stHeader, .stFooter, .stText, .stTabs, p, label {
         color: #FFFFFF !important;
     }
 
-    /* Set the headers to yellow */
     h1, h2, h3, h4 {
-        color: #FFC000 !important;  /* ApeX Yellow */
+        color: #FFC000 !important;
     }
 
-    /* Style for all primary buttons */
     .stButton>button {
-        background-color: #FFC000;  /* ApeX Yellow */
-        color: #000000 !important;  /* Black text */
+        background-color: #FFC000;
+        color: #000000 !important;
         border-radius: 8px !important;
         padding: 10px 24px !important;
         font-size: 16px !important;
         font-weight: 500 !important;
-        border: 2px solid #000000 !important; /* Black border */
+        border: 2px solid #000000 !important;
         text-align: center !important;
     }
 
-    /* Style for download button */
     .stDownloadButton > button {
-        background-color: #FFC000 !important;  /* ApeX Yellow */
-        color: #000000 !important;  /* Black text */
+        background-color: #FFC000 !important;
+        color: #000000 !important;
         border-radius: 8px !important;
         padding: 10px 24px !important;
         font-size: 16px !important;
         font-weight: 500 !important;
-        border: 2px solid #000000 !important; /* Black border */
+        border: 2px solid #000000 !important;
         text-align: center !important;
     }
 
-    /* Override any border styles that might be affecting buttons */
     .stButton > button:hover, .stDownloadButton > button:hover {
-        background-color: #E5A800 !important;  /* Slightly darker yellow on hover */
-        color: #000000 !important;  /* Ensure text is black on hover */
+        background-color: #E5A800 !important;
+        color: #000000 !important;
     }
 
-    /* Styling the Effective Commission result */
     .stMarkdown > div > div > div > .stMarkdown > div:nth-child(2) > div {
-        background-color: #FFC000 !important; /* ApeX Yellow */
-        color: #000000 !important; /* Black text */
+        background-color: #FFC000 !important;
+        color: #000000 !important;
         border-radius: 8px !important;
         padding: 10px !important;
         font-size: 24px !important;
@@ -169,10 +159,9 @@ st.markdown("""
         text-align: center !important;
     }
 
-    /* Dark green text for positive ROI */
     .positive-roi {
-        background-color: #ccffcc !important; /* Light green background */
-        color: #006400 !important; /* Dark green text */
+        background-color: #ccffcc !important;
+        color: #006400 !important;
         border-radius: 8px !important;
         padding: 10px !important;
         font-size: 24px !important;
@@ -186,7 +175,7 @@ st.markdown("""
     }
 
     hr {
-        border: 1px solid #FFC000 !important;  /* ApeX Yellow */
+        border: 1px solid #FFC000 !important;
     }
 
     img {
@@ -206,11 +195,12 @@ st.markdown("""
 st.title("BD's Calculator Tool")
 
 # Create tabs
-tab0, tab1, tab2, tab3, tab4, tab5 = st.tabs([
+tab0, tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
     "INFO", 
     "EFFECTIVE COMMISSION", 
     "MAX PAYMENTS", 
-    "BREAK-EVEN", 
+    "Net Zero Point", 
+    "Volume Requirements", 
     "ROI", 
     "SCENARIO"
 ])
@@ -377,95 +367,150 @@ with tab2:
     if "Max Bonus & Payments" in st.session_state['calculations']:
         download_pdf({"Max Bonus & Payments": st.session_state['calculations']["Max Bonus & Payments"]}, "Max_Bonus_Payments")
 
-# Tab 3: Break-even Volume Calculator
+# Tab 3: Net Zero Point Calculator (formerly Break-even)
 with tab3:
-    st.header("Break-even Volume Calculator")
+    st.header("Net Zero Point Calculator")
     st.write("""
-        This tab calculates the volume needed to reach the break-even point based on the total budget and effective commission.
+        This tab calculates the volume needed to reach the Net Zero Point based on the total budget and effective commission.
     """)
     st.latex(r'''
-    \text{Trading Volume} = \frac{ \text{Budget} }{ \text{Average ApeX Fee} \times ( 1 - \text{Affiliate Effective Commission} ) }
+    \text{Trading Volume} = \frac{ \text{Budget} }{ \text{Average ApeX Fee} \times ( 1 - \text{Affiliate Commission} - \text{Master Affiliate Commission} ) }
     ''')
     st.write("""
         **Guide:**
-        - **Total Budget for Break-even:** Enter the total budget in dollars.
-        - **Affiliate Effective Commission:** Select the effective commission percentage or enter a specific value.
+        - **Total Budget for Net Zero Point:** Enter the total budget in dollars.
+        - **Affiliate Commission:** Select the affiliate commission percentage.
+        - **Master Affiliate Commission:** Select the master affiliate commission percentage.
     """)
     st.divider()
 
     # Inputs for the calculator
-    budget_str = st.text_input("Enter Total Budget for Break-even ($):", key="budget_str_1", value=format_number(6000.0))
+    budget_str = st.text_input("Enter Total Budget for Net Zero Point ($):", key="budget_str_1", value=format_number(6000.0))
     
-    affiliate_effective_commission_options = [0.40, 0.45, 0.50, 0.55, 0.60, 0.65]
-    selected_affiliate_effective_commission = st.selectbox(
-        "Affiliate Effective Commission:", 
-        options=affiliate_effective_commission_options, 
-        format_func=lambda x: f"{int(x * 100)}%",
-        key="affiliate_effective_commission_break_even"
-    )
-    specific_affiliate_effective_commission_str = st.text_input("Or enter specific Affiliate Effective Commission (%):", value="0", key="specific_affiliate_effective_commission_break_even")
-    specific_affiliate_effective_commission = parse_number(specific_affiliate_effective_commission_str) / 100
-    
-    affiliate_effective_commission = specific_affiliate_effective_commission if specific_affiliate_effective_commission != 0 else selected_affiliate_effective_commission
+    aff_commission = st.selectbox("Affiliate Commission:", options=affiliate_commission_options, format_func=lambda x: f"{int(x * 100)}%", key="affiliate_commission_net_zero")
+    master_aff_commission = st.selectbox("Master Affiliate Commission:", options=master_affiliate_commission_options, format_func=lambda x: f"{int(x * 100)}%", key="master_affiliate_commission_net_zero")
     
     average_apex_fee = 0.000475
 
     # Calculate button
-    if st.button("Calculate Break-even Volume"):
+    if st.button("Calculate Net Zero Volume"):
         # Parse inputs
         budget = parse_number(budget_str)
 
-        # Calculate Target Volume for Break Even Point
-        trading_volume_break_even = budget / (average_apex_fee * (1 - affiliate_effective_commission))
+        # Calculate Target Volume for Net Zero Point
+        trading_volume_net_zero = budget / (average_apex_fee * (1 - aff_commission - master_aff_commission))
 
         # Display Results
         st.write("### Results")
 
-        st.write("#### Break Even Trading Volume")
-        st.info(f"{format_number(trading_volume_break_even)}")
+        st.write("#### Net Zero Trading Volume")
+        st.info(f"{format_number(trading_volume_net_zero)}")
 
-        st.write("### Possible ROI Outcomes")
+        st.write("### Possible Outcomes")
 
-        # Calculate possible ROI outcomes
-        roi_positive_scenarios = [trading_volume_break_even * (1 + x/100) for x in [15, 30]]
-        roi_negative_scenarios = [trading_volume_break_even * (1 - x/100) for x in [15, 30]]
+        # Calculate possible outcomes
+        positive_scenarios = [trading_volume_net_zero * (1 + x/100) for x in [15, 30]]
+        negative_scenarios = [trading_volume_net_zero * (1 - x/100) for x in [15, 30]]
 
         # Display positive scenarios
         st.write("#### Positive Scenarios")
-        st.info(f"Scenario 1 (+15% ROI): {format_number(roi_positive_scenarios[0])}")
-        st.info(f"Scenario 2 (+30% ROI): {format_number(roi_positive_scenarios[1])}")
+        st.info(f"Scenario 1 (+15%): {format_number(positive_scenarios[0])}")
+        st.info(f"Scenario 2 (+30%): {format_number(positive_scenarios[1])}")
 
         # Display negative scenarios
         st.write("#### Negative Scenarios")
-        st.info(f"Scenario 1 (-15% ROI): {format_number(roi_negative_scenarios[0])}")
-        st.info(f"Scenario 2 (-30% ROI): {format_number(roi_negative_scenarios[1])}")
+        st.info(f"Scenario 1 (-15%): {format_number(negative_scenarios[0])}")
+        st.info(f"Scenario 2 (-30%): {format_number(negative_scenarios[1])}")
 
         # Store the result in session state
-        st.session_state['calculations']["Break-even Volume"] = {
-            "Break Even Trading Volume": f"{format_number(trading_volume_break_even)}",
-            "Positive Scenario 1": f"{format_number(roi_positive_scenarios[0])}",
-            "Positive Scenario 2": f"{format_number(roi_positive_scenarios[1])}",
-            "Negative Scenario 1": f"{format_number(roi_negative_scenarios[0])}",
-            "Negative Scenario 2": f"{format_number(roi_negative_scenarios[1])}"
+        st.session_state['calculations']["Net Zero Volume"] = {
+            "Net Zero Trading Volume": f"{format_number(trading_volume_net_zero)}",
+            "Positive Scenario 1": f"{format_number(positive_scenarios[0])}",
+            "Positive Scenario 2": f"{format_number(positive_scenarios[1])}",
+            "Negative Scenario 1": f"{format_number(negative_scenarios[0])}",
+            "Negative Scenario 2": f"{format_number(negative_scenarios[1])}"
         }
 
     # Individual Print Button
-    if "Break-even Volume" in st.session_state['calculations']:
-        download_pdf({"Break-even Volume": st.session_state['calculations']["Break-even Volume"]}, "Break_even_Volume")
+    if "Net Zero Volume" in st.session_state['calculations']:
+        download_pdf({"Net Zero Volume": st.session_state['calculations']["Net Zero Volume"]}, "Net_Zero_Volume")
 
-# Tab 4: Standard Calculation
+# Tab 4: Volume Requirements Calculator
 with tab4:
+    st.header("Volume Requirements Calculator")
+    st.write("""
+        This tab calculates the volume required to achieve the desired bonus based on the fixed effective commission of 65%, 
+        affiliate commission, and master affiliate commission.
+    """)
+    st.latex(r'''
+    \text{Volume Required} = \frac{\text{Bonus}}{0.65 - \left( \text{Affiliate Commission} + \text{Master Affiliate Commission} \right) } \times \frac{1}{\text{Average ApeX Fee}}
+    ''')
+    st.write("""
+        **Guide:**
+        - **Bonus ($):** Enter the desired bonus in dollars.
+        - **Affiliate Commission:** Select the affiliate commission percentage.
+        - **Master Affiliate Commission:** Select the master affiliate commission percentage.
+    """)
+    st.divider()
+
+    # Inputs for the calculator
+    bonus_str = st.text_input("Enter Desired Bonus ($):", key="bonus_str_1", value="2000.00")
+    aff_commission = st.selectbox("Affiliate Commission:", options=affiliate_commission_options, format_func=lambda x: f"{int(x * 100)}%", key="affiliate_commission_vol_req")
+    master_aff_commission = st.selectbox("Master Affiliate Commission:", options=master_affiliate_commission_options, format_func=lambda x: f"{int(x * 100)}%", key="master_affiliate_commission_vol_req")
+
+    average_apex_fee = 0.000475
+
+    # Calculate button
+    if st.button("Calculate Volume Requirements"):
+        # Parse inputs
+        bonus = parse_number(bonus_str)
+
+        # Calculate Volume Required
+        try:
+            # Calculate the denominator (65% - (Affiliate Commission + Master Affiliate Commission))
+            effective_commission = 0.65 - (aff_commission + master_aff_commission)
+
+            if effective_commission <= 0:
+                raise ValueError("The effective commission must be less than 65%.")
+
+            # Calculate Volume Required
+            volume_required = (bonus / effective_commission) / average_apex_fee
+
+            # Display Results
+            st.write("### Results")
+
+            st.write("#### Volume Required")
+            st.info(f"{format_number(volume_required / 1_000_000)} M")
+
+            # Store the result in session state
+            st.session_state['calculations']["Volume Required"] = {
+                "Bonus": f"${format_number(bonus)}",
+                "Affiliate Commission": f"{format_percentage(aff_commission)}",
+                "Master Affiliate Commission": f"{format_percentage(master_aff_commission)}",
+                "Volume Required": f"{format_number(volume_required / 1_000_000)} M"
+            }
+
+        except ValueError as e:
+            st.error(str(e))
+
+    # Individual Print Button
+    if "Volume Required" in st.session_state['calculations']:
+        download_pdf({"Volume Required": st.session_state['calculations']["Volume Required"]}, "Volume_Required")
+
+# Tab 5: ROI Calculation
+with tab5:
     st.header("ROI Calculation")
     st.write("""
         This tab calculates the standard ROI based on the given volume, budget, and effective commission.
     """)
     st.latex(r'''
-    \text{ROI} = \left( \frac{ \text{ApeX Generated Fee} - \text{Budget} }{ \text{Budget} } \right) \times 100
+    \text{ROI} = \frac{\text{ApeX Generated Fee} - \text{Budget}}{\text{Affiliate Commission} + \text{Master Affiliate Commission} + \text{Budget}} \times 100
     ''')
     st.write("""
         **Guide:**
         - **Introduce Volume (in millions):** Select or enter the trading volume.
-        - **Affiliate Effective Commission:** Select the effective commission percentage or enter a specific value.
+        - **Affiliate Commission:** Select the affiliate commission percentage.
+        - **Master Affiliate Commission:** Select the master affiliate commission percentage.
         - **Total Budget:** Enter the total budget in dollars.
     """)
     st.divider()
@@ -475,17 +520,8 @@ with tab4:
     target_volume_input = st.text_input("Or enter specific Volume:", value="0", key="volume_input_3")
     target_volume = target_volume_select if parse_number(target_volume_input) == 0 else parse_number(target_volume_input)
 
-    affiliate_effective_commission_options = [0.40, 0.45, 0.50, 0.55, 0.60, 0.65]
-    selected_affiliate_effective_commission = st.selectbox(
-        "Affiliate Effective Commission:", 
-        options=affiliate_effective_commission_options, 
-        format_func=lambda x: f"{int(x * 100)}%",
-        key="affiliate_effective_commission_standard"
-    )
-    specific_affiliate_effective_commission_str = st.text_input("Or enter specific Affiliate Effective Commission (%):", value="0", key="specific_affiliate_effective_commission_standard")
-    specific_affiliate_effective_commission = parse_number(specific_affiliate_effective_commission_str) / 100
-    
-    affiliate_effective_commission = specific_affiliate_effective_commission if specific_affiliate_effective_commission != 0 else selected_affiliate_effective_commission
+    aff_commission = st.selectbox("Affiliate Commission:", options=affiliate_commission_options, format_func=lambda x: f"{int(x * 100)}%", key="affiliate_commission_roi")
+    master_aff_commission = st.selectbox("Master Affiliate Commission:", options=master_affiliate_commission_options, format_func=lambda x: f"{int(x * 100)}%", key="master_affiliate_commission_roi")
     
     budget_str = st.text_input("Enter Total Budget ($):", value=format_number(7000.0), key="budget_str_2")
 
@@ -501,18 +537,17 @@ with tab4:
         total_trading_fee = target_volume * average_apex_fee
 
         # Calculate ApeX Generated Fee
-        apex_generated_fee = total_trading_fee * (1 - affiliate_effective_commission)
-
-        # Calculate Effective Commission
-        effective_commission = affiliate_effective_commission
+        apex_generated_fee = total_trading_fee * (1 - aff_commission - master_aff_commission)
 
         # Calculate ROI
-        roi = ((apex_generated_fee - budget) / budget) * 100 if budget != 0 else 0
+        total_affiliate_spend = aff_commission + master_aff_commission + budget
+        roi = ((apex_generated_fee - budget) / total_affiliate_spend) * 100 if total_affiliate_spend != 0 else 0
 
         # Store inputs in session_state for use in the scenario tab
         st.session_state['roi_target_volume'] = target_volume
         st.session_state['roi_budget'] = budget
-        st.session_state['roi_affiliate_effective_commission'] = affiliate_effective_commission
+        st.session_state['roi_affiliate_commission'] = aff_commission
+        st.session_state['roi_master_affiliate_commission'] = master_aff_commission
         st.session_state['roi_apex_generated_fee'] = apex_generated_fee
         st.session_state['roi'] = roi
         st.session_state['roi_total_trading_fee'] = total_trading_fee
@@ -539,8 +574,8 @@ with tab4:
     if "Standard ROI Calculation" in st.session_state['calculations']:
         download_pdf({"Standard ROI Calculation": st.session_state['calculations']["Standard ROI Calculation"]}, "Standard_ROI_Calculation")
 
-# Tab 5: Scenario Calculation
-with tab5:
+# Tab 6: Scenario Calculation
+with tab6:
     st.header("Scenario Calculation")
     st.write("""
         This tab calculates the expected volume and ROI based on various market scenarios.
@@ -561,7 +596,8 @@ with tab5:
     if 'roi_target_volume' in st.session_state:
         base_volume = st.session_state['roi_target_volume']
         budget = st.session_state['roi_budget']
-        affiliate_effective_commission = st.session_state['roi_affiliate_effective_commission']
+        aff_commission = st.session_state['roi_affiliate_commission']
+        master_aff_commission = st.session_state['roi_master_affiliate_commission']
         apex_generated_fee = st.session_state['roi_apex_generated_fee']
         roi = st.session_state['roi']
     else:
@@ -590,7 +626,7 @@ with tab5:
 
         # Calculate expected volume with scenario multipliers
         v_expected_scenario = base_volume * ms_multiplier * as_multiplier * ki_multiplier * ae_multiplier
-        apex_generated_fee_scenario = v_expected_scenario * 0.000475 * (1 - affiliate_effective_commission)
+        apex_generated_fee_scenario = v_expected_scenario * 0.000475 * (1 - aff_commission - master_aff_commission)
         roi_scenario = ((apex_generated_fee_scenario - budget) / budget) * 100 if budget != 0 else 0
 
         st.write("### Comparison with Scenario Multipliers")
@@ -627,10 +663,9 @@ with tab5:
         download_pdf({"Scenario Calculation": st.session_state['calculations']["Scenario Calculation"]}, "Scenario_Calculation")
 
 # Check if all calculations are done
-if len(st.session_state['calculations']) == 6:  # Include affiliate_info in the count
+if len(st.session_state['calculations']) == 7:  # Include affiliate_info in the count
     st.session_state['all_calculations_done'] = True
 
 # "Print All the Information" Button
 if st.session_state['all_calculations_done']:
     download_pdf(st.session_state['calculations'], "All_Information")
-
