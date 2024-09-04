@@ -196,13 +196,13 @@ st.title("BD's Calculator Tool")
 
 # Create tabs
 tab0, tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-    "INFO", 
-    "EFFECTIVE COMMISSION", 
-    "MAX PAYMENTS", 
+    "Info", 
+    "Effective Commission", 
+    "Max Payments", 
     "Net Zero Point", 
     "Volume Requirements", 
     "ROI", 
-    "SCENARIO"
+    "Scenario"
 ])
 
 # Tab 0: INFO
