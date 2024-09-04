@@ -248,7 +248,7 @@ with tab1:
     st.divider()
 
     # Inputs for the calculator
-    volume_options = list(range(10, 101, 10)) + list(range(125, 301, 25))
+    volume_options = list(range(10, 101, 5)) + list(range(125, 301, 25))
     volume_select = st.selectbox("Introduce Volume (in millions):", volume_options, key="volume_select_0") * 1_000_000
     volume_input = st.text_input("Or enter specific Volume:", value="0", key="volume_input_0")
     volume = volume_select if parse_number(volume_input) == 0 else parse_number(volume_input)
@@ -582,10 +582,10 @@ with tab5:
 with tab6:
     st.header("Scenario Calculation")
     st.write("""
-        This tab calculates the expected volume and ROI based on various market scenarios.
+        This tab calculates the expected volume and ROI based on various market scenarios, applying the new ROI formula.
     """)
     st.latex(r'''
-    \text{Expected Volume} = \text{Base Volume} \times \text{MS} \times \text{AS} \times \text{KI} \times \text{AE}
+    \text{ROI} = \frac{\text{ApeX Generated Fee} - \text{Budget}}{\text{Generated Affiliate Commission} + \text{Generated Master Affiliate Commission} + \text{Budget}} \times 100
     ''')
     st.write("""
         **Guide:**
@@ -600,8 +600,8 @@ with tab6:
     if 'roi_target_volume' in st.session_state:
         base_volume = st.session_state['roi_target_volume']
         budget = st.session_state['roi_budget']
-        aff_commission = st.session_state['roi_affiliate_commission']
-        master_aff_commission = st.session_state['roi_master_affiliate_commission']
+        affiliate_commission = st.session_state['roi_affiliate_commission']
+        master_affiliate_commission = st.session_state['roi_master_affiliate_commission']
         apex_generated_fee = st.session_state['roi_apex_generated_fee']
         roi = st.session_state['roi']
     else:
@@ -615,7 +615,7 @@ with tab6:
     affiliate_engagement = st.selectbox("Affiliate Engagement (AE):", ["High (1.25)", "Neutral (1.0)", "Low (0.75)"], index=1, key="affiliate_engagement")
 
     # Calculate button
-    if st.button("Calculate", key="calculate_scenario"):
+    if st.button("Calculate Scenario", key="calculate_scenario"):
         # Define multipliers
         ms_dict = {"Positive (1.2)": 1.2, "Neutral (1.0)": 1.0, "Negative (0.5)": 0.5}
         as_dict = {"High (1.1)": 1.1, "Neutral (1.0)": 1.0, "Low (0.9)": 0.9}
@@ -630,8 +630,18 @@ with tab6:
 
         # Calculate expected volume with scenario multipliers
         v_expected_scenario = base_volume * ms_multiplier * as_multiplier * ki_multiplier * ae_multiplier
-        apex_generated_fee_scenario = v_expected_scenario * 0.000475 * (1 - aff_commission - master_aff_commission)
-        roi_scenario = ((apex_generated_fee_scenario - budget) / budget) * 100 if budget != 0 else 0
+        total_trading_fee_scenario = v_expected_scenario * 0.000475
+
+        # Calculate Generated Affiliate and Master Affiliate Commissions in Scenario
+        generated_affiliate_commission_scenario = total_trading_fee_scenario * affiliate_commission
+        generated_master_affiliate_commission_scenario = total_trading_fee_scenario * master_affiliate_commission
+
+        # Calculate ApeX Generated Fee in Scenario
+        apex_generated_fee_scenario = total_trading_fee_scenario * (1 - affiliate_commission - master_affiliate_commission)
+
+        # Calculate ROI in Scenario
+        total_affiliate_spend_scenario = generated_affiliate_commission_scenario + generated_master_affiliate_commission_scenario + budget
+        roi_scenario = ((apex_generated_fee_scenario - budget) / total_affiliate_spend_scenario) * 100 if total_affiliate_spend_scenario != 0 else 0
 
         st.write("### Comparison with Scenario Multipliers")
 
@@ -666,10 +676,3 @@ with tab6:
     if "Scenario Calculation" in st.session_state['calculations']:
         download_pdf({"Scenario Calculation": st.session_state['calculations']["Scenario Calculation"]}, "Scenario_Calculation")
 
-# Check if all calculations are done
-if len(st.session_state['calculations']) == 7:  # Include affiliate_info in the count
-    st.session_state['all_calculations_done'] = True
-
-# "Print All the Information" Button
-if st.session_state['all_calculations_done']:
-    download_pdf(st.session_state['calculations'], "All_Information")
