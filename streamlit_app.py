@@ -196,13 +196,13 @@ st.title("BD's Calculator Tool")
 
 # Create tabs
 tab0, tab1, tab2, tab3, tab4, tab5, tab6 = st.tabs([
-    "Info", 
-    "Effective Commission", 
-    "Max Payments", 
+    "INFO", 
+    "EFFECTIVE COMMISSION", 
+    "MAX PAYMENTS", 
     "Net Zero Point", 
     "Volume Requirements", 
     "ROI", 
-    "Scenario"
+    "SCENARIO"
 ])
 
 # Tab 0: INFO
@@ -504,7 +504,7 @@ with tab5:
         This tab calculates the standard ROI based on the given volume, budget, and effective commission.
     """)
     st.latex(r'''
-    \text{ROI} = \frac{\text{ApeX Generated Fee} - \text{Budget}}{\text{Affiliate Commission} + \text{Master Affiliate Commission} + \text{Budget}} \times 100
+    \text{ROI} = \frac{\text{ApeX Generated Fee} - \text{Budget}}{\text{Generated Affiliate Commission} + \text{Generated Master Affiliate Commission} + \text{Budget}} \times 100
     ''')
     st.write("""
         **Guide:**
@@ -536,11 +536,15 @@ with tab5:
         # Calculate Total Trading Fee
         total_trading_fee = target_volume * average_apex_fee
 
+        # Calculate Generated Affiliate and Master Affiliate Commissions
+        generated_affiliate_commission = total_trading_fee * aff_commission
+        generated_master_affiliate_commission = total_trading_fee * master_aff_commission
+
         # Calculate ApeX Generated Fee
         apex_generated_fee = total_trading_fee * (1 - aff_commission - master_aff_commission)
 
         # Calculate ROI
-        total_affiliate_spend = aff_commission + master_aff_commission + budget
+        total_affiliate_spend = generated_affiliate_commission + generated_master_affiliate_commission + budget
         roi = ((apex_generated_fee - budget) / total_affiliate_spend) * 100 if total_affiliate_spend != 0 else 0
 
         # Store inputs in session_state for use in the scenario tab
