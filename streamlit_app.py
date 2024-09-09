@@ -60,6 +60,11 @@ def create_pdf(calculations, title):
             # Print section content
             c.setFont("Helvetica", 12)
             for label, value in calculations[section].items():
+                # Italicize outputs
+                if "Result" in label or "Commission" in label or "ROI" in label or "Volume" in label:
+                    c.setFont("Helvetica-Oblique", 12)  # Italic font for outputs
+                else:
+                    c.setFont("Helvetica", 12)  # Regular font for inputs
                 c.drawString(margin, y_position, f"{label}: {value}")
                 y_position -= 20
 
@@ -223,11 +228,6 @@ with tab0:
             "Incentive Number": incentive_number
         }
         st.success("Information saved successfully.")
-
-    # Individual Print Button
-    if "affiliate_info" in st.session_state['calculations']:
-        download_pdf({"Affiliate/KOL Information": st.session_state['calculations']["affiliate_info"]}, "Affiliate_KOL_Information")
-
 # Tab 1: Effective Commission Calculator
 with tab1:
     st.header("Effective Commission Calculator")
@@ -311,10 +311,6 @@ with tab1:
                 "Effective Commission": f"{effective_commission_str}"
             }
 
-    # Individual Print Button
-    if "Effective Commission" in st.session_state['calculations']:
-        download_pdf({"Effective Commission": st.session_state['calculations']["Effective Commission"]}, "Effective_Commission")
-
 # Tab 2: Max Bonus & Payments Calculator
 with tab2:
     st.header("Max Bonus & Payments Calculator")
@@ -362,10 +358,6 @@ with tab2:
         st.session_state['calculations']["Max Bonus & Payments"] = {
             "Maximum Allowable Bonus & Payments": f"${format_number(max_bonus_payments)}"
         }
-
-    # Individual Print Button
-    if "Max Bonus & Payments" in st.session_state['calculations']:
-        download_pdf({"Max Bonus & Payments": st.session_state['calculations']["Max Bonus & Payments"]}, "Max_Bonus_Payments")
 
 # Tab 3: Net Zero Point Calculator (formerly Break-even)
 with tab3:
@@ -431,10 +423,6 @@ with tab3:
             "Negative Scenario 2": f"{format_number(negative_scenarios[1])}"
         }
 
-    # Individual Print Button
-    if "Net Zero Volume" in st.session_state['calculations']:
-        download_pdf({"Net Zero Volume": st.session_state['calculations']["Net Zero Volume"]}, "Net_Zero_Volume")
-
 # Tab 4: Volume Requirements Calculator
 with tab4:
     st.header("Volume Requirements Calculator")
@@ -492,10 +480,6 @@ with tab4:
 
         except ValueError as e:
             st.error(str(e))
-
-    # Individual Print Button
-    if "Volume Required" in st.session_state['calculations']:
-        download_pdf({"Volume Required": st.session_state['calculations']["Volume Required"]}, "Volume_Required")
 
 # Tab 5: ROI Calculation
 with tab5:
@@ -574,10 +558,6 @@ with tab5:
             "ROI": f"{format_number(roi)}%"
         }
 
-    # Individual Print Button
-    if "Standard ROI Calculation" in st.session_state['calculations']:
-        download_pdf({"Standard ROI Calculation": st.session_state['calculations']["Standard ROI Calculation"]}, "Standard_ROI_Calculation")
-
 # Tab 6: Scenario Calculation
 with tab6:
     st.header("Scenario Calculation")
@@ -637,7 +617,7 @@ with tab6:
         generated_master_affiliate_commission_scenario = total_trading_fee_scenario * master_affiliate_commission
 
         # Calculate ApeX Generated Fee in Scenario
-        apex_generated_fee_scenario = total_trading_fee_scenario * (1 - affiliate_commission - master_affiliate_commission)
+        apex_generated_fee_scenario = total_trading_fee_scenario * (1 - affiliate_commission - master_aff_commission)
 
         # Calculate ROI in Scenario
         total_affiliate_spend_scenario = generated_affiliate_commission_scenario + generated_master_affiliate_commission_scenario + budget
@@ -672,7 +652,17 @@ with tab6:
             "ROI with Scenario": f"{format_number(roi_scenario)}%"
         }
 
-    # Individual Print Button
-    if "Scenario Calculation" in st.session_state['calculations']:
-        download_pdf({"Scenario Calculation": st.session_state['calculations']["Scenario Calculation"]}, "Scenario_Calculation")
+# Remove all individual print buttons and add a single print button at the end
+if st.session_state['calculations']:
+    st.markdown("---")
+    st.markdown("### Download All Calculations as PDF")
+    
+    # Retrieve the affiliate's name from the session state, or set a default if not available
+    affiliate_name = st.session_state['calculations'].get("affiliate_info", {}).get("Affiliate/KOL Name", "All_Calculations")
+    
+    # Replace spaces in affiliate name with underscores for file naming
+    file_name = affiliate_name.replace(" ", "_") + "_Calculations"
+    
+    # Generate the PDF with the affiliate's name
+    download_pdf(st.session_state['calculations'], file_name)
 
