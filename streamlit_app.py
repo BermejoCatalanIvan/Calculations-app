@@ -248,7 +248,7 @@ with tab1:
     st.divider()
 
     # Inputs for the calculator
-    volume_options = list(range(10, 101, 5)) + list(range(125, 301, 25))
+    volume_options = list(range(10, 101, 5)) + list(range(125, 301, 25)) + list(range(350, 800, 50))
     volume_select = st.selectbox("Introduce Volume (in millions):", volume_options, key="volume_select_0") * 1_000_000
     volume_input = st.text_input("Or enter specific Volume:", value="0", key="volume_input_0")
     volume = volume_select if parse_number(volume_input) == 0 else parse_number(volume_input)
