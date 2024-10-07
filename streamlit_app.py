@@ -288,7 +288,7 @@ with tab1:
 
             st.write("#### Effective Commission")
             effective_commission_str = f"{format_percentage(total_commission)}"
-            if total_commission > 0.65:
+            if total_commission > 0.75:
                 st.markdown(
                     f"<div style='background-color: #ffcccc; padding: 20px; border-radius: 5px; text-align: center;'>"
                     f"<span style='color:red; font-size:24px; font-weight:bold;'>{effective_commission_str}</span>"
@@ -315,10 +315,10 @@ with tab1:
 with tab2:
     st.header("Max Bonus & Payments Calculator")
     st.write("""
-        This tab calculates the maximum allowable sum of bonus and payments that can be offered to the affiliate without surpassing a 65% effective commission.
+        This tab calculates the maximum allowable sum of bonus and payments that can be offered to the affiliate without surpassing a 75% effective commission.
     """)
     st.latex(r'''
-    \text{Max (Bonus + Payments)} = \left( 0.65 - \text{Affiliate Commission} - \text{Master Affiliate Commission} \right) \times ( \text{Volume} \times \text{Average ApeX Fee} )
+    \text{Max (Bonus + Payments)} = \left( 0.75 - \text{Affiliate Commission} - \text{Master Affiliate Commission} \right) \times ( \text{Volume} \times \text{Average ApeX Fee} )
     ''')
     st.write("""
         **Guide:**
@@ -343,7 +343,7 @@ with tab2:
         fee_income = volume * average_apex_fee
 
         # Calculate Margin Commission as a percentage
-        margin_commission_percentage = (0.65 - aff_commission - master_aff_commission)
+        margin_commission_percentage = (0.75 - aff_commission - master_aff_commission)
 
         # Calculate Max (Bonus + Payments)
         max_bonus_payments = margin_commission_percentage * fee_income
@@ -427,11 +427,11 @@ with tab3:
 with tab4:
     st.header("Volume Requirements Calculator")
     st.write("""
-        This tab calculates the volume required to achieve the desired bonus based on the fixed effective commission of 65%, 
+        This tab calculates the volume required to achieve the desired bonus based on the fixed effective commission of 75%, 
         affiliate commission, and master affiliate commission.
     """)
     st.latex(r'''
-    \text{Volume Required} = \frac{\text{Bonus}}{0.65 - \left( \text{Affiliate Commission} + \text{Master Affiliate Commission} \right) } \times \frac{1}{\text{Average ApeX Fee}}
+    \text{Volume Required} = \frac{\text{Bonus}}{0.75 - \left( \text{Affiliate Commission} + \text{Master Affiliate Commission} \right) } \times \frac{1}{\text{Average ApeX Fee}}
     ''')
     st.write("""
         **Guide:**
@@ -455,11 +455,11 @@ with tab4:
 
         # Calculate Volume Required
         try:
-            # Calculate the denominator (65% - (Affiliate Commission + Master Affiliate Commission))
-            effective_commission = 0.65 - (aff_commission + master_aff_commission)
+            # Calculate the denominator (75% - (Affiliate Commission + Master Affiliate Commission))
+            effective_commission = 0.75 - (aff_commission + master_aff_commission)
 
             if effective_commission <= 0:
-                raise ValueError("The effective commission must be less than 65%.")
+                raise ValueError("The effective commission must be less than 75%.")
 
             # Calculate Volume Required
             volume_required = (bonus / effective_commission) / average_apex_fee
