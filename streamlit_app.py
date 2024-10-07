@@ -253,7 +253,7 @@ with tab1:
     volume_input = st.text_input("Or enter specific Volume:", value="0", key="volume_input_0")
     volume = volume_select if parse_number(volume_input) == 0 else parse_number(volume_input)
     
-    affiliate_commission_options = [x/100 for x in range(0, 61, 5)]
+    affiliate_commission_options = [x/100 for x in range(0, 71, 5)]
     master_affiliate_commission_options = [x/100 for x in range(0, 21)]
     
     aff_commission = st.selectbox("Affiliate Commission:", options=affiliate_commission_options, format_func=lambda x: f"{int(x * 100)}%", key="aff_commission_0")
